@@ -15,6 +15,7 @@ clc
 
 %% Process the windows for all data samples
 load('be521_sub1_compData.mat'); % Load the data for the first patient
+[train_datx, train_daty, test_datx, test_daty] = Folding(train_data,train_dg);
 Feature_array1=processWindows(train_data);
 save('Feature1_1.mat','Feature_array1');
 
