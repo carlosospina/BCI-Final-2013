@@ -1,3 +1,6 @@
+
+%%
+% data - 
 function Feature_array = calcFeatures( data, fs )
     windowSize=size(data,1);
     Electrodes=size(data,2);
