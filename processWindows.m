@@ -13,7 +13,8 @@
 function [featureMatrix]=processWindows(train_data)
     windowSize = 100; % window size
     overlap = 50e-3; %overlap time in s
-    samplePeriod=1/1000; % sampling at 1Khz
+    fs=1000; %sampling frequency 1Khz
+    samplePeriod=1/fs; % sampling period
     numFeatures = 6;
     totalSamples=size(train_data,1);
     electrodes = size( train_data,2 );
@@ -31,13 +32,12 @@ function [featureMatrix]=processWindows(train_data)
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
     for(i=0:numRows-1)
-        rowWindowStart=(i*windowDisplacement)+startOffset;
-        rowWindowEnd=rowWindowStart+windowSize;      
+        rowWindowStart=(i*windowDisplacement)+startOffset+1;
+        rowWindowEnd=rowWindowStart-1+windowSize;
+        windowData=train_data(rowWindowStart:rowWindowEnd,:);
+        featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
-    
-    %for(i=1:    
-    %featureMatrix = Calc_features( train_data);
-end
+ end
 
 
 

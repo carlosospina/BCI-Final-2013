@@ -33,6 +33,7 @@ function [featureMatrix]=processWindows(train_data)
     for(i=0:numRows-1)
         rowWindowStart=(i*windowDisplacement)+startOffset;
         rowWindowEnd=rowWindowStart+windowSize;      
+        
     end
     
     %for(i=1:    
