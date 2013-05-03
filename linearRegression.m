@@ -50,6 +50,6 @@ function [filter]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
     % Calculate the corresponding filters
     size(realOutput(:,1))
     for(col=1:numColOutputs);
-         filter(:,col)=inv(X'*X);%*(X'*realOutput(:,col));
+         filter(:,col)=(X'*X)\(X'*realOutput(:,col));
     end 
 end
