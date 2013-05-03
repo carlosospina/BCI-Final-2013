@@ -1,16 +1,16 @@
 
 %%
-% data - 
+% data - Windowed data 100 x 62 
 function Feature_array = calcFeatures( data, fs )
     windowSize=size(data,1);
     Electrodes=size(data,2);
     numFeatures=6;
-    Feature_array = zeros(numFeatures);    
+    Feature_array = zeros(1,numFeatures*Electrodes);    
 
     for i = 1:Electrodes
         baseColumn=(i-1)*numFeatures;
         % Calculate mean
-        Feature_array(baseColumn+1)=mean(data(:,i));
+        Feature_array(baseColumn+1)=mean((data(:,i)));
 
         % Calculate frquency features
         [S,f,t] = spectrogram(data(:,i),windowSize,windowSize/2,1000,fs);

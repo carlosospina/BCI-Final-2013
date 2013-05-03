@@ -31,12 +31,15 @@ function [featureMatrix]=processWindows(train_data)
     numRows=numRows-1;
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
-    for(i=0:numRows-1)
-        rowWindowStart=(i*windowDisplacement)+startOffset+1;
+    for(i=1:numRows)
+        disp(sprintf('Processing window %d from %d...\n',i,numRows));
+        rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
         windowData=train_data(rowWindowStart:rowWindowEnd,:);
         featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
+    disp(sprintf('Done processing windows\n'));
+    featureMatrix
  end
 
 
