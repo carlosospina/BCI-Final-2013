@@ -11,11 +11,11 @@ y_var = floor(y_size(1) * 0.7);
 %display(['x var = ',num2str(x_var)]);
 %display(['y var = ',num2str(y_var)]);
 
-train_datx = x(1:x_var,1:62);
-train_daty = y(1:y_var,1:5);
+train_datx = x(1:x_var,:);
+train_daty = y(1:y_var,:);
 
-test_datx = x(x_var:x_size,1:62);
-test_daty = y(y_var:y_size,1:5);
+test_datx = x(x_var:x_size,:);
+test_daty = y(y_var:y_size,:);
 
 %save('train_datx.mat','train_datx');
 %save('train_daty.mat','train_daty');

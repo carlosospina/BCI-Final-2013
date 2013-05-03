@@ -39,7 +39,6 @@ function [featureMatrix]=processWindows(train_data)
         featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
     disp(sprintf('Done processing windows\n'));
-    featureMatrix
  end
 
 

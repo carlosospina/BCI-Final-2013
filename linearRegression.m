@@ -23,33 +23,42 @@ end
 % -> numBins represent how many time bins previous to the actual 
 % (including actual) will be used to build the filter that will be used on prediction.
 function [filter]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
-%    numFeatures=size(featureMatrix,2)/numChannels;
+    disp(sprintf('Begining linear regression: \n'));
     numChannels=size(featureMatrix,2)/numFeatures;
-    numTotalTimeBins=size(featureMatrix,1)-numBins+1;
+    numTotalTimeBins=size(featureMatrix,1);
     
-    numColumns=1+numBins*numFeatures*numChannels
-    numRows=numTotalTimeBins
+    numColumns=1+numBins*numFeatures*numChannels;
+    numRows=numTotalTimeBins;
 
     % Build the X matrix
     % Iterate to fill the matrix, one row at the time
     X=zeros(numRows,numColumns);
     for r=1:numRows
-        % Get the relevant data (submatrix)
-        dataColStart=r;
-        dataColEnd=dataColStart+numBins-1;
-        data=featureMatrix(dataColStart:dataColEnd,:);
-        % Now we convert the matrix into a row vector, column by column
-        data=reshape(data.',[],1)';
+        % Get the relevant data for the channel and bin, by creating a submatrix
+        % 1) Select the rows for the number of bins
+        dataRowStart=r;
+        dataRowEnd=dataRowStart+numBins-1;
+        % 2)Build a submatrix for each channel and its features
+        rowData=[];
+        for(ch=1:numChannels)
+            dataColStart=(ch-1)*numFeatures+1;
+            dataColEnd=dataColStart+numFeatures-1;
+            data=featureMatrix(dataRowStart:dataRowEnd,dataColStart:dataColEnd);
+            % Now we convert the matrix into a row vector, column by column
+            rowData=[rowData reshape(data.',[],1)'];
+        end
         % We add the data to the X matrix
-        X(r,:)=[1 data];
+        X(r,:)=[1 rowData]
     end
-    size(X)
     numColOutputs=size(realOutput,2);
     numRowOutputs=size(realOutput,1);
     filter=zeros(numRowOutputs,numColOutputs);
     % Calculate the corresponding filters
-    size(realOutput(:,1))
-    for(col=1:numColOutputs);
-         filter(:,col)=(X'*X)\(X'*realOutput(:,col));
-    end 
+    size_x=size(X)
+    size_ro=size(realOutput(:,1))
+    filter=(X'*X)\(X'*realOutput(:,1));
+%     for(col=1:numColOutputs);
+%          filter(:,col)=(X'*X)\(X'*realOutput(:,col));
+%     end 
+    disp(sprintf('Linear regression done. \n'));
 end
