@@ -12,11 +12,16 @@
 % clear the workspace and console
 clc
 
+%% Load Data
+disp(sprintf('Loading data... \n'));
+fileName='be521_sub1_compData.mat'
+load(fileName); % Load the data for the first patient
+disp(sprintf('... done loading data\n'));
+
 %% Process the windows for all data samples
-load('be521_sub1_compData.mat'); % Load the data for the first patient
-%[train_datx, train_daty, test_datx, test_daty] = Folding(train_data,train_dg);
-%featureMatrix=processWindows(train_datx);
-load('Feature1_1.mat','Feature_array1');
+Feature_array1=processWindows(train_data);
+save('Feature1_1.mat','Feature_array1');
+%load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Downsample Y by 50
@@ -28,8 +33,21 @@ for(i=1:numColsY)
     data=train_dg(:,i)';
     y(:,i)=(decimate(decimate(data,10),5))';
 end
-%Remove last row
-y=y(1:end-1,:);
-%Create coficients for classifier
+%% Normalize features before processing
+normFeatureMatrix=normalizeByColumn(featureMatrix);
+
+%% Create coficients for classifier
 lr=linearRegression;
-[filter]=lr.createFilters(featureMatrix, y, 6, 3);
+[filter X]=lr.createFilters(normFeatureMatrix, y, 6, 3);
+
+%% Predict 
+prediction=X*filter;
+%% Find correlation
+% adjust the size of y
+newY=y(1:size(X,1),:);
+% for each finger
+for i=1:size(prediction,2)
+    cf=corr(prediction(:,i),newY(:,i));
+    r2=rtwo(prediction(:,i),newY(:,i));
+    display(sprintf('Finger %d ==> correlation: %f \n',i,cf));
+end

@@ -22,13 +22,13 @@ end
 % the data
 % -> numBins represent how many time bins previous to the actual 
 % (including actual) will be used to build the filter that will be used on prediction.
-function [filter]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
+function [filter X]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
     disp(sprintf('Begining linear regression: \n'));
     numChannels=size(featureMatrix,2)/numFeatures;
     numTotalTimeBins=size(featureMatrix,1);
     
     numColumns=1+numBins*numFeatures*numChannels;
-    numRows=numTotalTimeBins;
+    numRows=numTotalTimeBins-numBins+1;
 
     % Build the X matrix
     % Iterate to fill the matrix, one row at the time
@@ -48,17 +48,9 @@ function [filter]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
             rowData=[rowData reshape(data.',[],1)'];
         end
         % We add the data to the X matrix
-        X(r,:)=[1 rowData]
+        X(r,:)=[1 rowData];
     end
-    numColOutputs=size(realOutput,2);
-    numRowOutputs=size(realOutput,1);
-    filter=zeros(numRowOutputs,numColOutputs);
     % Calculate the corresponding filters
-    size_x=size(X)
-    size_ro=size(realOutput(:,1))
-    filter=(X'*X)\(X'*realOutput(:,1));
-%     for(col=1:numColOutputs);
-%          filter(:,col)=(X'*X)\(X'*realOutput(:,col));
-%     end 
+    filter=(X'*X)\(X'*realOutput(1:numRows,:));
     disp(sprintf('Linear regression done. \n'));
 end

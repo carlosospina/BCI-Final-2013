@@ -11,6 +11,7 @@
 % time window was 62(5 + 1) = 372 for a subject with 62 EEG channels.
 
 function [featureMatrix]=processWindows(train_data)
+    disp(sprintf('Processing windows ...\n'));
     windowSize = 100; % window size
     overlap = 50e-3; %overlap time in s
     fs=1000; %sampling frequency 1Khz
@@ -32,13 +33,13 @@ function [featureMatrix]=processWindows(train_data)
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
     for(i=1:numRows)
-        disp(sprintf('Processing window %d from %d...\n',i,numRows));
+        disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
         windowData=train_data(rowWindowStart:rowWindowEnd,:);
         featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
-    disp(sprintf('Done processing windows\n'));
+    disp(sprintf('... done processing windows\n'));
  end
 
 
