@@ -18,13 +18,13 @@ numFeatures=6;
 
 %% Load Data
 disp(sprintf('Loading data... \n'));
-fileName='be521_sub2_compData.mat'
+fileName='be521_sub3_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 %% Process the windows for all data samples
-Feature_array1=processWindows(train_data);
-save('Feature1_2.mat','Feature_array1');
+Feature_array1=processWindows(test_data);
+%save('Feature1_3.mat','Feature_array1');
 %load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
@@ -49,7 +49,7 @@ lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
 
 % Find the filter
-% filter=lr.findFilter(X,y);
+%filter=lr.findFilter(X,y);
 
 %% Predict 
 prediction=X*filter;
@@ -87,15 +87,15 @@ for i=1:size(prediction,2)
 end
 
 %save response
-save('sub2_eval.mat','eval_dg');
+save('sub3_eval.mat','eval_dg');
 
 numInterpolatedRows=size(eval_dg,1);
-subplot(2,4,1);
+subplot(2,5,1);
 for i=1:size(prediction,2)
-    subplot(2,4,i);
+    subplot(2,5,i);
     plot(train_dg(1:numInterpolatedRows,i));
     title('Original');
-    subplot(2,1,i+1);
+    subplot(2,5,i+5);
     plot(eval_dg(1:numInterpolatedRows,i));
     title('Predicted');
 end
