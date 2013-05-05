@@ -11,7 +11,9 @@
 
 % clear the workspace and console
 clc
-
+numBins=3;
+decimationFactor = 50;
+numFeatures=6;
 %% Load Data
 disp(sprintf('Loading data... \n'));
 fileName='be521_sub1_compData.mat'
@@ -19,42 +21,54 @@ load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 %% Process the windows for all data samples
-Feature_array1=processWindows(train_data);
-save('Feature1_1.mat','Feature_array1');
-%load('Feature1_1.mat','Feature_array1');
+% Feature_array1=processWindows(train_data);
+% save('Feature1_1.mat','Feature_array1');
+load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Downsample Y by 50
 size_train_dg=size(train_dg);
 numColsY=size(train_dg,2);
-numRowsY=size(train_dg,1)/50;
+numRowsY=size(train_dg,1)/decimationFactor;
 y=zeros(numRowsY,numColsY);
 for(i=1:numColsY)
     data=train_dg(:,i)';
-    y(:,i)=(decimate(decimate(data,10),5))';
+    % two step decimation
+    tmpData=decimate(data,floor(decimationFactor/5));
+    tmpData = decimate(tmpData,decimationFactor/10);
+    y(:,i)=(tmpData)';
 end
-%% Normalize features before processing
-normFeatureMatrix=normalizeByColumn(featureMatrix);
 
-%% Create coficients for classifier
+%% Create coficients for regression
+%% Normalize features before processing
+%normFeatureMatrix=normalizeByColumn(featureMatrix);
+% Do regression
 lr=linearRegression;
-[filter X]=lr.createFilters(normFeatureMatrix, y, 6, 3);
+[filter X]=lr.createFilters(normFeatureMatrix, y, numFeatures, numBins);
 
 %% Predict 
 prediction=X*filter;
-%% Find correlation and r2
+%% Find correlation
 % adjust the size of y
 newY=y(1:size(X,1),:);
-% correlate finger 1
-cf1=corr(prediction(:,1),newY(:,1))
-r1
-display(sprintf('Finger %d ==> correlation= %f, r2=',i,cf,r2);
-% correlate finger 2
-cf2=corr(prediction(:,2),newY(:,2))
-% correlate finger 3
-cf3=corr(prediction(:,3),newY(:,3))
-% correlate finger 4
-cf4=corr(prediction(:,4),newY(:,4))
-% correlate finger 5
-cf5=corr(prediction(:,5),newY(:,5))
+% for each finger
+for i=1:size(prediction,2)
+    cf=corr(prediction(:,i),newY(:,i));
+    r2=rtwo(prediction(:,i),newY(:,i));
+    display(sprintf('Finger %d ==> correlation: %f \n',i,cf));
+end
+%%
+% finding the spline cubic function
+interpolatedVal = zeros(size(prediction,1)...
+    *decimationFactor,size(train_dg,2));
+for i=1:size(prediction,2)
+    interpolatedVal(:,i)= calcSpline(decimationFactor,prediction(:,i));
+end
 
+numInterpolatedRows=size(interpolatedVal,1);
+subplot(2,1,1);
+plot(newY(1:500,1));
+title('Original');
+subplot(2,1,2);
+plot(prediction(1:500,1));
+title('Predicted');

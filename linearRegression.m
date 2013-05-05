@@ -10,19 +10,20 @@ function functions=linearRegression
 end
 
 %% Creates the filter coeficients for: (XT X)^-1 (XT Y)
-% -> featureMatrix is a matrix where rows are time bines, usually windows, and
-% the columns have the features of the corresponding time bin, for each of
-% the channels. ie: 
+% -> featureMatrix is a matrix where rows are time bines, usually windows,
+% and the columns have the features of the corresponding time bin, for each
+% of the channels. ie:
 %       time0 -> ch1f1,ch1f2,ch1f3,ch2f1,ch2f2,ch2f3,ch3f1,ch3f2,ch3f3
 %       time1 -> ch1f1,ch1f2,ch1f3,ch2f1,ch2f2,ch2f3,ch3f1,ch3f2,ch3f3
 %       time2 -> ch1f1,ch1f2,ch1f3,ch2f1,ch2f2,ch2f3,ch3f1,ch3f2,ch3f3
 %       time3 -> ch1f1,ch1f2,ch1f3,ch2f1,ch2f2,ch2f3,ch3f1,ch3f2,ch3f3
-% -> realOutput represent the meassured output after the experiment
-% -> numFeatures represent the number of features on for each channel on
-% the data
-% -> numBins represent how many time bins previous to the actual 
-% (including actual) will be used to build the filter that will be used on prediction.
-function [filter X]=createFilters(featureMatrix, realOutput, numFeatures, numBins)
+% -> realOutput represent the measured output after the experiment ->
+% numFeatures represent the number of features on for each channel on the
+% data -> numBins represent how many time bins previous to the actual
+% (including actual) will be used to build the filter that will be used on
+% prediction.
+function [filter X]=createFilters(featureMatrix, realOutput, ...
+    numFeatures, numBins)
     disp(sprintf('Begining linear regression: \n'));
     numChannels=size(featureMatrix,2)/numFeatures;
     numTotalTimeBins=size(featureMatrix,1);
@@ -34,8 +35,8 @@ function [filter X]=createFilters(featureMatrix, realOutput, numFeatures, numBin
     % Iterate to fill the matrix, one row at the time
     X=zeros(numRows,numColumns);
     for r=1:numRows
-        % Get the relevant data for the channel and bin, by creating a submatrix
-        % 1) Select the rows for the number of bins
+        % Get the relevant data for the channel and bin, by creating a
+        % submatrix 1) Select the rows for the number of bins
         dataRowStart=r;
         dataRowEnd=dataRowStart+numBins-1;
         % 2)Build a submatrix for each channel and its features
@@ -43,7 +44,8 @@ function [filter X]=createFilters(featureMatrix, realOutput, numFeatures, numBin
         for(ch=1:numChannels)
             dataColStart=(ch-1)*numFeatures+1;
             dataColEnd=dataColStart+numFeatures-1;
-            data=featureMatrix(dataRowStart:dataRowEnd,dataColStart:dataColEnd);
+            data=featureMatrix(dataRowStart:dataRowEnd,...
+                dataColStart:dataColEnd);
             % Now we convert the matrix into a row vector, column by column
             rowData=[rowData reshape(data.',[],1)'];
         end
