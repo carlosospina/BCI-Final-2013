@@ -17,12 +17,12 @@ function Feature_array = calcFeatures( data, fs )
 
         S = S';
         %the 7th bin is corresponding to 6Hz, so here is 6Hz to 15Hz
-        Feature_array(baseColumn+2) = sum(abs(S(:,7:16)'))';   
+        Feature_array(baseColumn+2) = mean(abs(S(:,7:16)'))';   
 
-        Feature_array(baseColumn+3) = sum(abs(S(:,22:26)'))';
-        Feature_array(baseColumn+4) = sum(abs(S(:,77:116)'))';
-        Feature_array(baseColumn+5) = sum(abs(S(:,127:161)'))';
-        Feature_array(baseColumn+6) = sum(abs(S(:,162:176)'))';
+        Feature_array(baseColumn+3) = mean(abs(S(:,22:26)'))';
+        Feature_array(baseColumn+4) = mean(abs(S(:,77:116)'))';
+        Feature_array(baseColumn+5) = mean(abs(S(:,127:161)'))';
+        Feature_array(baseColumn+6) = mean(abs(S(:,162:176)'))';
         clear S;
     end
 

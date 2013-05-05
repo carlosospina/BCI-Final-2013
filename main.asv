@@ -11,64 +11,100 @@
 
 % clear the workspace and console
 clc
+
 numBins=3;
 decimationFactor = 50;
 numFeatures=6;
+
 %% Load Data
 disp(sprintf('Loading data... \n'));
-fileName='be521_sub1_compData.mat'
+fileName='be521_sub2_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 %% Process the windows for all data samples
-% Feature_array1=processWindows(train_data);
-% save('Feature1_1.mat','Feature_array1');
-load('Feature1_1.mat','Feature_array1');
+Feature_array1=processWindows(_data);
+%save('Feature1_1.mat','Feature_array1');
+%load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
-%% Downsample Y by 50
-size_train_dg=size(train_dg);
-numColsY=size(train_dg,2);
-numRowsY=size(train_dg,1)/decimationFactor;
+%% Process data from glove
+% 1) Remove 200ms of data due to delay between brain and hand
+shiftedY=train_dg(201:end,:);
+% 2) Downsample Y by DecimationFactor (50)
+numColsY=size(shiftedY,2)
+numRowsY=size(shiftedY,1)/decimationFactor
 y=zeros(numRowsY,numColsY);
+ySize=size(y)
 for(i=1:numColsY)
-    data=train_dg(:,i)';
     % two step decimation
-    tmpData=decimate(data,floor(decimationFactor/5));
-    tmpData = decimate(tmpData,decimationFactor/10);
+    data=shiftedY(:,i)';
+    tmpData=decimate(data,10);
+    tmpData = decimate(tmpData,5);
     y(:,i)=(tmpData)';
 end
 
-%% Create coficients for regression
-%% Normalize features before processing
-%normFeatureMatrix=normalizeByColumn(featureMatrix);
-% Do regression
+%% Linear regression
 lr=linearRegression;
-[filter X]=lr.createFilters(normFeatureMatrix, y, numFeatures, numBins);
+X=lr.buildX(featureMatrix, numFeatures, numBins);
+
+% Find the filter
+% filter=lr.findFilter(X,y);
 
 %% Predict 
 prediction=X*filter;
+interpolatedVal = zeros(size(prediction,1),size(prediction,2));
+tmpDecimate=12;
+for i=1:size(prediction,2)
+    tmpdata = decimate(prediction(:,i)',tmpDecimate);
+    tmpData=calcSpline(tmpDecimate,tmpdata');
+    interpolatedVal(:,i)=tmpData(1:size(interpolatedVal,1),:);
+end
+prediction=interpolatedVal;
+
 %% Find correlation
-% adjust the size of y
-newY=y(1:size(X,1),:);
+% adjust the size of y to have the same amount of rows
+% Fix number of rows on X, according to y
+numRows=min(size(y,1),size(prediction,1));
+y=y(1:numRows,:);
+prediction=prediction(1:numRows,:);
+cf=zeros(1,size(prediction,2));
 % for each finger
 for i=1:size(prediction,2)
-    cf=corr(prediction(:,i),newY(:,i));
-    r2=rtwo(prediction(:,i),newY(:,i));
-    display(sprintf('Finger %d ==> correlation: %f \n',i,cf));
+    cf(1,i)=corr(prediction(:,i),y(:,i));
+    r2=rtwo(prediction(:,i),y(:,i));
+    display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
+useFingers=[1 2 3 5];
+display(sprintf('Average correlation (no finger4): %f \n',mean(cf(useFingers))));
+
 %%
 % finding the spline cubic function
-interpolatedVal = zeros(size(prediction,1)...
-    *decimationFactor,size(train_dg,2));
+eval_dg = zeros(size(prediction,1)...
+    *decimationFactor,size(shiftedY,2));
 for i=1:size(prediction,2)
-    interpolatedVal(:,i)= calcSpline(decimationFactor,prediction(:,i));
+    eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
 end
 
-numInterpolatedRows=size(interpolatedVal,1);
-subplot(2,1,1);
-plot(newY(1:500,1));
-title('Original');
-subplot(2,1,2);
-plot(prediction(1:500,1));
-title('Predicted');
+%save response
+save('sub2_eval.mat','eval_dg');
+
+numInterpolatedRows=size(eval_dg,1);
+subplot(2,4,1);
+for i=1:size(prediction,2)
+    subplot(2,4,i);
+    plot(train_dg(1:numInterpolatedRows,i));
+    title('Original');
+    subplot(2,1,i+1);
+    plot(eval_dg(1:numInterpolatedRows,i));
+    title('Predicted');
+end
+
+% numInterpolatedRows=50%size(interpolatedVal,1);
+% subplot(2,1,1);
+% plot(y(1:numInterpolatedRows,1));
+% title('Original');
+% subplot(2,1,2);
+% plot(prediction(1:numInterpolatedRows,1));
+% title('Predicted');
+

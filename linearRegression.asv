@@ -6,8 +6,7 @@
 % lr=linearRegression;
 % lr.function1(x);
 function functions=linearRegression
-    functions.buildX=@buildX;
-    functions.findFilter=@findFilter;
+    functions.createFilters=@createFilters;
 end
 
 %% Creates the filter coeficients for: (XT X)^-1 (XT Y)
@@ -23,8 +22,9 @@ end
 % data -> numBins represent how many time bins previous to the actual
 % (including actual) will be used to build the filter that will be used on
 % prediction.
-function X=buildX(featureMatrix, numFeatures, numBins)
-    disp(sprintf('Building X... \n'));
+function [filteX]=buildX(featureMatrix, realOutput, ...
+    numFeatures, numBins)
+    disp(sprintf('Begining linear regression: \n'));
     numChannels=size(featureMatrix,2)/numFeatures;
     numTotalTimeBins=size(featureMatrix,1);
     
@@ -52,17 +52,10 @@ function X=buildX(featureMatrix, numFeatures, numBins)
         % We add the data to the X matrix
         X(r,:)=[1 rowData];
     end
-    disp(sprintf('... Build X done. \n'));
+    disp(sprintf('Linear regression done. \n'));
 end
 
 function filter=findFilter(X, Y)
-    disp(sprintf('Building filter... \n'));
-    numRows=min(size(X,1),size(Y,1));
-    X=X(1:numRows,:);
-    Y=Y(1:numRows,:);
-    xSize=size(X)
-    ySize=size(Y)
     % Calculate the corresponding filters
     filter=(X'*X)\(X'*Y(1:numRows,:));
-    disp(sprintf('... Filter done. \n'));
 end

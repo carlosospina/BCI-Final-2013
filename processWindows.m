@@ -33,7 +33,9 @@ function [featureMatrix]=processWindows(train_data)
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
     for(i=1:numRows)
-        disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
+        if mod(i,100) == 0 
+            disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
+        end
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
         windowData=train_data(rowWindowStart:rowWindowEnd,:);
