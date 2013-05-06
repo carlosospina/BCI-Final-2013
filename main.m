@@ -24,9 +24,9 @@ load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 %% Process the windows for all data samples
-Feature_array1=processWindows(train_data(1:50000,:));
+%Feature_array1=processWindows(train_data(1:60000,:));
 %save('Feature1_3.mat','Feature_array1');
-%load('Feature1_1.mat','Feature_array1');
+load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Process data from glove
@@ -53,14 +53,15 @@ filter=lr.findFilter(X,y);
 
 %% Predict 
 prediction=X*filter;
+% decimate for better results
 interpolatedVal = zeros(size(prediction,1),size(prediction,2));
-tmpDecimate=12;
-for i=1:size(prediction,2)
-    tmpdata = decimate(prediction(:,i)',tmpDecimate);
-    tmpData=calcSpline(tmpDecimate,tmpdata');
-    interpolatedVal(:,i)=tmpData(1:size(interpolatedVal,1),:);
-end
-prediction=interpolatedVal;
+% tmpDecimate=12;
+% for i=1:size(prediction,2)
+%     tmpdata = decimate(prediction(:,i)',tmpDecimate);
+%     tmpData=calcSpline(tmpDecimate,tmpdata');
+%     interpolatedVal(:,i)=tmpData(1:size(interpolatedVal,1),:);
+% end
+% prediction=interpolatedVal;
 % Pad the prediction matrix to have the smae number of predictions as Y
 prediction=[prediction;prediction(end,:)];
 prediction=[prediction;prediction(end,:)];
@@ -115,9 +116,56 @@ end
 % plot(prediction(1:numInterpolatedRows,1));
 % title('Predicted');
 
+aaaa
+%%
+subplot(2,1,1);
+plot(train_dg(1:numInterpolatedRows,1));
+title('Original');
+subplot(2,1,2);
+plot(eval_dg(1:numInterpolatedRows,1));
+title('Predicted');
+
+
 %%
 numRows=size(sub3test_dg);
 while numRows<200000
     sub3test_dg=[sub3test_dg;sub3test_dg(end,:)];
     numRows=size(sub3test_dg);
 end
+%%
+subplot(2,1,1)
+plot(train_data(:,20));
+subplot(2,1,2)
+plot(decimate(train_data(:,20),100));
+
+%%
+ch=20;
+subplot(2,1,1)
+spectrogram(train_data(:,ch),100,50,1000,1000);
+subplot(2,1,2)
+spectrogram(test_data(:,ch),100,50,1000,1000);
+
+
+%%
+% Config vars:
+topNColumns=50
+topNPrincipalComp=3
+
+% 1,2 we find the PCA from R, removing first column
+[pc,score,latent,tsquare] = princomp(X(:,2:end));
+
+% If we plot the PC matrix:
+clf;
+imagesc(pc(:,1:topNPrincipalComp));
+colorbar();
+
+% 3 Find the 100 columns of the first 10 Principal Components
+chosenColumns=zeros(topNPrincipalComp,topNColumns);
+for i=1:topNPrincipalComp
+    [sortedValues,sortIndex] = sort(pc(:,i),'descend');
+    chosenColumns(i,:)=sortIndex(1:topNColumns,1)';
+end
+
+%4 Remove Repeated
+chosenColumns=reshape(chosenColumns,1,topNPrincipalComp*topNColumns);
+chosenColumns=unique(chosenColumns);

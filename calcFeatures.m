@@ -16,12 +16,15 @@ function Feature_array = calcFeatures( data, fs )
         [S,f,t] = spectrogram(data(:,i),windowSize,windowSize/2,1000,fs);
 
         S = S';
-        %the 7th bin is corresponding to 6Hz, so here is 6Hz to 15Hz
+        %6Hz to 15Hz
         Feature_array(baseColumn+2) = mean(abs(S(:,7:16)'))';   
-
+        %21Hz to 25Hz
         Feature_array(baseColumn+3) = mean(abs(S(:,22:26)'))';
+        %76Hz to 115Hz
         Feature_array(baseColumn+4) = mean(abs(S(:,77:116)'))';
+        %126Hz to 160Hz
         Feature_array(baseColumn+5) = mean(abs(S(:,127:161)'))';
+        %161Hz to 175Hz
         Feature_array(baseColumn+6) = mean(abs(S(:,162:176)'))';
         clear S;
     end
