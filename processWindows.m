@@ -32,9 +32,12 @@ function [featureMatrix]=processWindows(train_data)
     numRows=numRows-1;
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
+    tic
     for(i=1:numRows)
         if mod(i,100) == 0 
             disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
+            toc
+            tic
         end
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;

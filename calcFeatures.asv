@@ -28,11 +28,6 @@ function Feature_array = calcFeatures( data, fs )
         Feature_array(baseColumn+6) = mean(abs(S(:,162:176)'))';
         clear S;
     end
-
-
-
-for i = 1:Electrodes
-
 end
 
 
