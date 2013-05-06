@@ -11,6 +11,7 @@
 
 % clear the workspace and console
 clc
+clear 
 
 numBins=3;
 decimationFactor = 50;
@@ -18,12 +19,12 @@ numFeatures=6;
 
 %% Load Data
 disp(sprintf('Loading data... \n'));
-fileName='be521_sub3_compData.mat'
+fileName='be521_sub1_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 %% Process the windows for all data samples
-Feature_array1=processWindows(test_data);
+Feature_array1=processWindows(train_data(1:50000,:));
 %save('Feature1_3.mat','Feature_array1');
 %load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
@@ -47,9 +48,8 @@ end
 %% Linear regression
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
-
 % Find the filter
-%filter=lr.findFilter(X,y);
+filter=lr.findFilter(X,y);
 
 %% Predict 
 prediction=X*filter;
@@ -61,18 +61,24 @@ for i=1:size(prediction,2)
     interpolatedVal(:,i)=tmpData(1:size(interpolatedVal,1),:);
 end
 prediction=interpolatedVal;
+% Pad the prediction matrix to have the smae number of predictions as Y
+prediction=[prediction;prediction(end,:)];
+prediction=[prediction;prediction(end,:)];
+prediction=[prediction;prediction(end,:)];
+% normalize prediction
+%prediction=normalizeByColumn(prediction);
 
 %% Find correlation
 % adjust the size of y to have the same amount of rows
 % Fix number of rows on X, according to y
 numRows=min(size(y,1),size(prediction,1));
 y=y(1:numRows,:);
-prediction=prediction(1:numRows,:);
+predictionTmp=prediction(1:numRows,:);
 cf=zeros(1,size(prediction,2));
 % for each finger
-for i=1:size(prediction,2)
-    cf(1,i)=corr(prediction(:,i),y(:,i));
-    r2=rtwo(prediction(:,i),y(:,i));
+for i=1:size(predictionTmp,2)
+    cf(1,i)=corr(predictionTmp(:,i),y(:,i));
+    r2=rtwo(predictionTmp(:,i),y(:,i));
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 useFingers=[1 2 3 5];
@@ -87,7 +93,8 @@ for i=1:size(prediction,2)
 end
 
 %save response
-save('sub3_eval.mat','eval_dg');
+%sub1test_dg=eval_dg;
+%save('sub1_eval.mat','subltest_dg');
 
 numInterpolatedRows=size(eval_dg,1);
 subplot(2,5,1);
@@ -108,3 +115,9 @@ end
 % plot(prediction(1:numInterpolatedRows,1));
 % title('Predicted');
 
+%%
+numRows=size(sub3test_dg);
+while numRows<200000
+    sub3test_dg=[sub3test_dg;sub3test_dg(end,:)];
+    numRows=size(sub3test_dg);
+end
