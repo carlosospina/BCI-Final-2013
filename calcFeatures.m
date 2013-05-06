@@ -13,7 +13,7 @@ function Feature_array = calcFeatures( data, fs )
         Feature_array(baseColumn+1)=mean((data(:,i)));
 
         % Calculate frquency features
-        [S,f,t] = spectrogram(data(:,i),windowSize,windowSize/2,1000,fs);
+        S = spectrogram(data(:,i),windowSize,windowSize/2,1000,fs);
 
         S = S';
         %6Hz to 15Hz
@@ -28,11 +28,6 @@ function Feature_array = calcFeatures( data, fs )
         Feature_array(baseColumn+6) = mean(abs(S(:,162:176)'))';
         clear S;
     end
-
-
-
-for i = 1:Electrodes
-
 end
 
 
