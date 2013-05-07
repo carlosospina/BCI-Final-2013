@@ -60,7 +60,8 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
-    y(:,i)=(tmpData(1:size(y,1)))';
+    tmpData = tmpData';
+    y(:,i)=(tmpData(1:size(y,1)));
 end
 
 %% Predict train data
@@ -130,7 +131,8 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
-    yTest(:,i)=(tmpData(1:size(yTest,1)))';
+    tmpData = tmpData';
+    yTest(:,i)=(tmpData(1:size(yTest,1)));
 end
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(predictionTest,yTest);
