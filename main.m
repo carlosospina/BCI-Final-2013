@@ -29,14 +29,21 @@ training_size = 400000;
 [train_data, train_dg, test_data, test_dg] = ...
     Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
+%% Data centering CAR 
+meanTrain=mean(train_data,2);
+meanTest = mean(test_data,2);
+for i  = 1: size( train_data,2)
+    train_data(:,i) = train_data(:,i) - meanTrain;
+    test_data(:,i) = test_data(:,i) - meanTest;
+end
 
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data);
+chosenColumns=chooseColumns(train_data(1:50000,:));
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('trainFeatures1.mat','Feature_array1');
-%load('Feature1_1.mat','Feature_array1');
+% load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Process data from glove
@@ -80,7 +87,7 @@ newTrainData=test_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('testFeatures1.mat','Feature_array1');
-%load('testFeatures1.mat','Feature_array1');
+% load('testFeatures1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Predict test data
@@ -189,4 +196,9 @@ Hd          = dfilt.df2sos(sos_var, g);
 test_filter = filter(Hd, test_data(:,ch));
 spectrogram(test_filter,100,50,1000,1000);
 
-
+%%
+for i=1:size(y,2)
+    smalValIndex=find(y(:,i)<1);
+    y(smalValIndex,i)=0;
+end
+size(y)

@@ -11,7 +11,7 @@
 
 % clear the workspace and console
 clc
-clear 
+% clear 
 
 numBins=3;
 decimationFactor = 50;
@@ -28,15 +28,19 @@ disp(sprintf('... done loading data\n'));
 training_size = 400000;
 [train_data, train_dg, test_data, test_dg] = ...
     Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
-
+meanTr
+for i  = 1: size( train_data,2)
+    train_data(:,i) = train_data(:,i) - mean(train_data,2);
+    test_data(:,i) = test_data(:,i) - mean(test_data,2);
+end
 
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data);
+chosenColumns=chooseColumns(train_data(1:50000,:));
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('trainFeatures1.mat','Feature_array1');
-%load('Feature1_1.mat','Feature_array1');
+% load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Process data from glove
@@ -80,7 +84,7 @@ newTrainData=test_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('testFeatures1.mat','Feature_array1');
-%load('testFeatures1.mat','Feature_array1');
+% load('testFeatures1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Predict test data
@@ -96,8 +100,8 @@ prediction=[prediction;prediction(end,:)];
 % 1) Remove 200ms of data due to delay between brain and hand
 shiftedY=test_dg(201:end,:);
 % 2) Downsample Y by DecimationFactor (50)
-numColsY=size(shiftedY,2)
-numRowsY=size(shiftedY,1)/decimationFactor
+numColsY=size(shiftedY,2);
+numRowsY=floor(size(shiftedY,1)/decimationFactor);
 y=zeros(numRowsY,numColsY);
 ySize=size(y);
 for(i=1:numColsY)
@@ -109,7 +113,7 @@ for(i=1:numColsY)
 end
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(prediction,y);
-for i=1:size(predictionTmp,2)
+for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
@@ -189,4 +193,9 @@ Hd          = dfilt.df2sos(sos_var, g);
 test_filter = filter(Hd, test_data(:,ch));
 spectrogram(test_filter,100,50,1000,1000);
 
-
+%%
+for i=1:size(y,2)
+    smalValIndex=find(y(:,i)<1);
+    y(smalValIndex,i)=0;
+end
+size(y)
