@@ -61,10 +61,10 @@ function filter=findFilter(X, Y)
     X=X(1:numRows,:);
     Y=Y(1:numRows,:);
     %remove small values from y
-    for i=1:size(Y,2)
-        smalValIndex=find(Y(:,i)<1);
-        Y(smalValIndex,i)=0;
-    end
+%     for i=1:size(Y,2)
+%         smalValIndex=find(Y(:,i)<0.5);
+%         Y(smalValIndex,i)=0;
+%     end
     % Calculate the corresponding filters
     filter=(X'*X)\(X'*Y(1:numRows,:));
     disp(sprintf('... Filter done. \n'));

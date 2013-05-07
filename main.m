@@ -38,12 +38,12 @@ for i  = 1: size( train_data,2)
 end
 
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data(1:50000,:));
+chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTrainData);
-save('trainFeatures1.mat','Feature_array1');
-% load('Feature1_1.mat','Feature_array1');
+% Feature_array1=processWindows(newTrainData);
+% save('trainFeatures1.mat','Feature_array1');
+load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Process data from glove
@@ -59,7 +59,8 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
-    y(:,i)=(tmpData(1:size(y,1)))';
+    tmpData = tmpData';
+    y(:,i)=(tmpData(1:size(y,1)));
 end
 
 %% Predict train data
@@ -112,7 +113,8 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
-    y(:,i)=(tmpData(1:size(y,1)))';
+    tmpData = tmpData';
+    y(:,i)=(tmpData(1:size(y,1)));
 end
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(prediction,y);
