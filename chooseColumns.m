@@ -8,9 +8,6 @@ function chosenColumns = chooseColumns(data)
     colMean=mean(positiveData);
     colMax=max(positiveData);
     dataRelevance=colMax-colMean;
-%     threshold=mean(dataRelevance);
-%     chosenColumns=find(dataRelevance>threshold);
-%    chosenColumns=zeros(1,topNColumns);
     [sortedValues,sortIndex] = sort(dataRelevance,'descend');
     chosenColumns=sortIndex(1,1:topNColumns)';
     
