@@ -4,7 +4,7 @@
 function [cf corrAvg] = findFingerCorrelation(predictedY,Y);
     numRows=min(size(Y,1),size(predictedY,1));
     Y=Y(1:numRows,:);
-    predictedY=prediction(1:numRows,:);
+    predictedY=predictedY(1:numRows,:);
     cf=zeros(1,size(predictedY,2));
     % for each finger
     for i=1:size(predictedY,2)

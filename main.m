@@ -23,12 +23,19 @@ fileName='be521_sub1_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
+
+%% Creating the folding matrices 
+training_size = 400000;
+[train_data, train_dg, test_data, test_dg] = ...
+    Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
+
+
 %% Reduce space of sensors using PCA to find the most relevant ones
 chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
-%save('Feature1_3.mat','Feature_array1');
+save('trainFeatures1.mat','Feature_array1');
 %load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
@@ -36,10 +43,10 @@ featureMatrix=Feature_array1;
 % 1) Remove 200ms of data due to delay between brain and hand
 shiftedY=train_dg(201:end,:);
 % 2) Downsample Y by DecimationFactor (50)
-numColsY=size(shiftedY,2)
-numRowsY=size(shiftedY,1)/decimationFactor
+numColsY=size(shiftedY,2);
+numRowsY=size(shiftedY,1)/decimationFactor;
 y=zeros(numRowsY,numColsY);
-ySize=size(y)
+ySize=size(y);
 for(i=1:numColsY)
     % two step decimation
     data=shiftedY(:,i)';
@@ -62,7 +69,7 @@ prediction=[prediction;prediction(end,:)];
 
 %% Find correlation with train_dg
 [cf corrAvg]=findFingerCorrelation(prediction,y);
-for i=1:size(predictionTmp,2)
+for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
@@ -89,10 +96,10 @@ prediction=[prediction;prediction(end,:)];
 % 1) Remove 200ms of data due to delay between brain and hand
 shiftedY=test_dg(201:end,:);
 % 2) Downsample Y by DecimationFactor (50)
-numColsY=size(shiftedY,2)
-numRowsY=size(shiftedY,1)/decimationFactor
+numColsY=size(shiftedY,2);
+numRowsY=floor(size(shiftedY,1)/decimationFactor);
 y=zeros(numRowsY,numColsY);
-ySize=size(y)
+ySize=size(y);
 for(i=1:numColsY)
     % two step decimation
     data=shiftedY(:,i)';
@@ -102,7 +109,7 @@ for(i=1:numColsY)
 end
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(prediction,y);
-for i=1:size(predictionTmp,2)
+for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
