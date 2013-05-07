@@ -25,21 +25,22 @@ disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size = 400000;
+training_size =size(train_data,1); %100000;
 [train_data, train_dg, test_data, test_dg] = ...
     Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
-meanTrain=mean(train_data,2);
-meanTest = mean(test_data,2);
-for i  = 1: size( train_data,2)
-    train_data(:,i) = train_data(:,i) - meanTrain;
-    test_data(:,i) = test_data(:,i) - meanTest;
-end
+% meanTrain=mean(train_data,2);
+% meanTest = mean(test_data,2);
+% for i  = 1: size( train_data,2)
+%     train_data(:,i) = train_data(:,i) - meanTrain;
+%     test_data(:,i) = test_data(:,i) - meanTest;
+% end
 
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data(1:50000,:));
+chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
+newTrainData=normalizeByColumn(newTrainData);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('trainFeatures1.mat','Feature_array1');
@@ -80,60 +81,12 @@ for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
-
-%% =============== TEST DATA =============
-%% Reduce space of sensors for test DATA
-newTrainData=test_data(:,chosenColumns);
-%% Process the windows for all data samples
-Feature_array1=processWindows(newTrainData);
-save('testFeatures1.mat','Feature_array1');
-% load('testFeatures1.mat','Feature_array1');
-featureMatrix=Feature_array1;
-
-%% Predict test data
-lr=linearRegression;
-X=lr.buildX(featureMatrix, numFeatures, numBins);
-% Use filter from train data
-prediction=X*filter;
-% Pad the prediction matrix to have the smae number of predictions as Y
-prediction=[prediction;prediction(end,:)];
-prediction=[prediction;prediction(end,:)];
-prediction=[prediction;prediction(end,:)];
-%% Process data from glove
-% 1) Remove 200ms of data due to delay between brain and hand
-shiftedY=test_dg(201:end,:);
-% 2) Downsample Y by DecimationFactor (50)
-numColsY=size(shiftedY,2);
-numRowsY=floor(size(shiftedY,1)/decimationFactor);
-y=zeros(numRowsY,numColsY);
-ySize=size(y);
-for(i=1:numColsY)
-    % two step decimation
-    data=shiftedY(:,i)';
-    tmpData=decimate(data,10);
-    tmpData = decimate(tmpData,5);
-    y(:,i)=(tmpData(1:size(y,1)))';
-end
-%% Find correlation with test_dg
-[cf corrAvg]=findFingerCorrelation(prediction,y);
-for i=1:size(cf,2)
-    display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
-end
-display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
-
-aaaa
-
-%%
+%% Plot train data results
 % finding the spline cubic function
-eval_dg = zeros(size(prediction,1)...
-    *decimationFactor,size(shiftedY,2));
+eval_dg = zeros(size(prediction,1)*decimationFactor,size(shiftedY,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
 end
-
-%save response
-%sub1test_dg=eval_dg;
-%save('sub1_eval.mat','subltest_dg');
 
 numInterpolatedRows=size(eval_dg,1);
 subplot(2,5,1);
@@ -146,13 +99,47 @@ for i=1:size(prediction,2)
     title('Predicted');
 end
 
-% numInterpolatedRows=50%size(interpolatedVal,1);
-% subplot(2,1,1);
-% plot(y(1:numInterpolatedRows,1));
-% title('Original');
-% subplot(2,1,2);
-% plot(prediction(1:numInterpolatedRows,1));
-% title('Predicted');
+%% =============== TEST DATA =============
+%% Reduce space of sensors for test DATA
+newTestData=test_data(:,chosenColumns);
+%% Process the windows for all data samples
+Feature_array1=processWindows(newTestData);
+save('testFeatures1.mat','Feature_array1');
+% load('testFeatures1.mat','Feature_array1');
+featureMatrix=Feature_array1;
+
+%% Predict test data
+lr=linearRegression;
+X=lr.buildX(featureMatrix, numFeatures, numBins);
+% Use filter from train data
+predictionTest=X*filter;
+% Pad the prediction matrix to have the smae number of predictions as Y
+predictionTest=[predictionTest;predictionTest(end,:)];
+predictionTest=[predictionTest;predictionTest(end,:)];
+predictionTest=[predictionTest;predictionTest(end,:)];
+%% Process data from glove
+% 1) Remove 200ms of data due to delay between brain and hand
+shiftedY=test_dg(201:end,:);
+% 2) Downsample Y by DecimationFactor (50)
+numColsY=size(shiftedY,2);
+numRowsY=floor(size(shiftedY,1)/decimationFactor);
+yTest=zeros(numRowsY,numColsY);
+ySize=size(yTest);
+for(i=1:numColsY)
+    % two step decimation
+    data=shiftedY(:,i)';
+    tmpData=decimate(data,10);
+    tmpData = decimate(tmpData,5);
+    yTest(:,i)=(tmpData(1:size(yTest,1)))';
+end
+%% Find correlation with test_dg
+[cf corrAvg]=findFingerCorrelation(predictionTest,yTest);
+for i=1:size(cf,2)
+    display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
+end
+display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
+
+aaaa
 
 
 %%

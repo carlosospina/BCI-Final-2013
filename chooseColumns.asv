@@ -2,17 +2,20 @@
 % This function looks for the channels with relevant data
 % and returns a matrix with only such channels
 function chosenColumns = chooseColumns(data)
+    
     numColumns=size(data,2);
-    topNColumns=numColumns;%50
     positiveData=abs(data);
     colMean=mean(positiveData);
     colMax=max(positiveData);
     dataRelevance=colMax-colMean;
-%     threshold=mean(dataRelevance);
-%     chosenColumns=find(dataRelevance>threshold);
-%    chosenColumns=zeros(1,topNColumns);
-    [sortedValues,sortIndex] = sort(dataRelevance,'descend');
-    chosenColumns=sortIndex(1,1:topNColumns)';
+    threshold=mean(dataRelevance);
+    chosenColumns=find(dataRelevance>threshold);
+
+    chosenColumns=zeros(topNPrincipalComp,topNColumns);
+    for i=1:topNPrincipalComp
+        [sortedValues,sortIndex] = sort(pc(:,i),'descend');
+        chosenColumns(i,:)=sortIndex(1:topNColumns,1)';
+end
     
     
 %     % 1) we find the PCA from data
