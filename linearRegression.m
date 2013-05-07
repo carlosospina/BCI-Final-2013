@@ -8,6 +8,7 @@
 function functions=linearRegression
     functions.buildX=@buildX;
     functions.findFilter=@findFilter;
+    functions.predictData=@predictData;
 end
 
 %% Creates the filter coeficients for: (XT X)^-1 (XT Y)
@@ -68,4 +69,16 @@ function filter=findFilter(X, Y)
     % Calculate the corresponding filters
     filter=(X'*X)\(X'*Y(1:numRows,:));
     disp(sprintf('... Filter done. \n'));
+end
+
+
+
+function predictedY=predictData(filter, X)
+    % predict
+    prediction=X*filter;
+    % Pad the prediction matrix to have the smae number of predictions as Y
+    prediction=[prediction;prediction(end,:)];
+    prediction=[prediction;prediction(end,:)];
+    prediction=[prediction;prediction(end,:)];
+    predictedY=prediction;
 end
