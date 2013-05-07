@@ -4,7 +4,8 @@
 function chosenColumns = chooseColumns(data)
     numColumns=size(data,2);
     topNColumns=numColumns;%50
-    positiveData=abs(data);
+    positiveData=normalizeByColumn(abs(data));
+
     colMean=mean(positiveData);
     colMax=max(positiveData);
     dataRelevance=colMax-colMean;

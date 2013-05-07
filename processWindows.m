@@ -10,13 +10,12 @@
 % very helpful for this.) Thus, the total number of features in a given
 % time window was 62(5 + 1) = 372 for a subject with 62 EEG channels.
 
-function [featureMatrix]=processWindows(train_data)
+function [featureMatrix]=processWindows(train_data,numFeatures)
     disp(sprintf('Processing windows ...\n'));
     windowSize = 100; % window size
     overlap = 50e-3; %overlap time in s
     fs=1000; %sampling frequency 1Khz
     samplePeriod=1/fs; % sampling period
-    numFeatures = 6;
     totalSamples=size(train_data,1);
     electrodes = size( train_data,2 );
        
@@ -42,7 +41,7 @@ function [featureMatrix]=processWindows(train_data)
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
         windowData=train_data(rowWindowStart:rowWindowEnd,:);
-        featureMatrix(i,:)=calcFeatures(windowData,fs);
+        featureMatrix(i,:)=calcFeatures(windowData,fs, numFeatures);
     end
     disp(sprintf('... done processing windows\n'));
  end

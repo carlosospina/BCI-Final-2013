@@ -25,7 +25,7 @@ disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size = 100000;
+training_size =100000; %size(train_data,1);
 [train_data, train_dg, test_data, test_dg] = ...
     Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
@@ -38,8 +38,9 @@ training_size = 100000;
 % end
 
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data);
+chosenColumns=chooseColumns(train_data(1:50000,:));
 newTrainData=train_data(:,chosenColumns);
+newTrainData=normalizeByColumn(newTrainData);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('trainFeatures1.mat','Feature_array1');
@@ -51,7 +52,7 @@ featureMatrix=Feature_array1;
 shiftedY=train_dg(201:end,:);
 % 2) Downsample Y by DecimationFactor (50)
 numColsY=size(shiftedY,2);
-numRowsY=size(shiftedY,1)/decimationFactor;
+numRowsY=size(shiftedY,1)/decimationFactor;6
 y=zeros(numRowsY,numColsY);
 ySize=size(y);
 for(i=1:numColsY)
@@ -80,6 +81,23 @@ for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
+%% Plot train data results
+% finding the spline cubic function
+eval_dg = zeros(size(prediction,1)*decimationFactor,size(shiftedY,2));
+for i=1:size(prediction,2)
+    eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+end
+
+numInterpolatedRows=size(eval_dg,1);
+subplot(2,5,1);
+for i=1:size(prediction,2)
+    subplot(2,5,i);
+    plot(train_dg(1:numInterpolatedRows,i));
+    title('Original');
+    subplot(2,5,i+5);
+    plot(eval_dg(1:numInterpolatedRows,i));
+    title('Predicted');
+end
 
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
@@ -122,33 +140,6 @@ end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 
 aaaa
-
-%% Plot train data results
-% finding the spline cubic function
-eval_dg = zeros(size(prediction,1)...
-    *decimationFactor,size(shiftedY,2));
-for i=1:size(prediction,2)
-    eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
-end
-
-numInterpolatedRows=size(eval_dg,1);
-subplot(2,5,1);
-for i=1:size(prediction,2)
-    subplot(2,5,i);
-    plot(train_dg(1:numInterpolatedRows,i));
-    title('Original');
-    subplot(2,5,i+5);
-    plot(eval_dg(1:numInterpolatedRows,i));
-    title('Predicted');
-end
-
-% numInterpolatedRows=50%size(interpolatedVal,1);
-% subplot(2,1,1);
-% plot(y(1:numInterpolatedRows,1));
-% title('Original');
-% subplot(2,1,2);
-% plot(prediction(1:numInterpolatedRows,1));
-% title('Predicted');
 
 
 %%
@@ -198,3 +189,26 @@ for i=1:size(y,2)
     y(smalValIndex,i)=0;
 end
 size(y)
+
+
+
+%%
+delay=200;
+numSamples=10000;
+numChannels=size(train_data,2);
+corrData=zeros(numChannels,5);
+for finger=1:5
+    fingerData=train_dg(delay:numSamples,finger);
+    zerosData=find(fingerData<1);
+    fingerData(zerosData)=0;
+    for i=1:numChannels;
+        chData=train_data(1:numSamples-delay+1,i);
+        corrData(1,i)=corr(fingerData,chData);
+    end
+end
+subplot(2,1,1);
+plot(train_dg(delay:10000,1));
+title('finger');
+subplot(2,1,2);
+plot(train_data(1:10000-delay,18));
+title('channel');

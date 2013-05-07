@@ -25,7 +25,7 @@ disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size =size(train_data,1); %100000;
+training_size =100000; %size(train_data,1);
 [train_data, train_dg, test_data, test_dg] = ...
     Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
@@ -42,7 +42,7 @@ chosenColumns=chooseColumns(train_data(1:50000,:));
 newTrainData=train_data(:,chosenColumns);
 newTrainData=normalizeByColumn(newTrainData);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTrainData);
+Feature_array1=processWindows(newTrainData, numFeatures);
 save('trainFeatures1.mat','Feature_array1');
 % load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
@@ -103,7 +103,7 @@ end
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTestData);
+Feature_array1=processWindows(newTestData, numFeatures);
 save('testFeatures1.mat','Feature_array1');
 % load('testFeatures1.mat','Feature_array1');
 featureMatrix=Feature_array1;
@@ -189,3 +189,24 @@ for i=1:size(y,2)
     y(smalValIndex,i)=0;
 end
 size(y)
+
+
+
+%%
+delay=200;
+numSamples=10000;
+numChannels=size(train_data,2);
+fingerData=train_dg(delay:numSamples,1);
+zerosData=find(fingerData<1);
+fingerData(zerosData)=0;
+corrData=zeros(numChannels,1);
+for i=1:numChannels;
+    chData=train_data(1:numSamples-delay+1,i);
+    corrData(1,i)=corr(fingerData,chData);
+end
+subplot(2,1,1);
+plot(train_dg(delay:10000,1));
+title('finger');
+subplot(2,1,2);
+plot(train_data(1:10000-delay,18));
+title('channel');
