@@ -42,9 +42,9 @@ chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
 newTrainData=normalizeByColumn(newTrainData);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTrainData);
-save('trainFeatures1.mat','Feature_array1');
-% load('Feature1_1.mat','Feature_array1');
+% Feature_array1=processWindows(newTrainData);
+% save('trainFeatures1.mat','Feature_array1');
+load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Process data from glove
@@ -60,7 +60,8 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
-    y(:,i)=(tmpData(1:size(y,1)))';
+    tmpData = tmpData';
+    y(:,i)=(tmpData(1:size(y,1)));
 end
 
 %% Predict train data
@@ -130,7 +131,12 @@ for(i=1:numColsY)
     data=shiftedY(:,i)';
     tmpData=decimate(data,10);
     tmpData = decimate(tmpData,5);
+<<<<<<< HEAD
     yTest(:,i)=(tmpData(1:size(yTest,1)))';
+=======
+    tmpData = tmpData';
+    y(:,i)=(tmpData(1:size(y,1)));
+>>>>>>> 7fa54e1ec0c6b6df04f0d5081e3258fb506b4c2c
 end
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(predictionTest,yTest);

@@ -60,9 +60,15 @@ function filter=findFilter(X, Y)
     numRows=min(size(X,1),size(Y,1));
     X=X(1:numRows,:);
     Y=Y(1:numRows,:);
+<<<<<<< HEAD
 %     %remove small values from y
 %     for i=1:size(Y,2)
 %         smalValIndex=find(Y(:,i)<1);
+=======
+    %remove small values from y
+%     for i=1:size(Y,2)
+%         smalValIndex=find(Y(:,i)<0.5);
+>>>>>>> 7fa54e1ec0c6b6df04f0d5081e3258fb506b4c2c
 %         Y(smalValIndex,i)=0;
 %     end
     % Calculate the corresponding filters
