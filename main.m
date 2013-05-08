@@ -26,7 +26,7 @@ disp(sprintf('... done loading data\n'));
 
 %% Creating the folding matrices 
 training_size = size(train_data,1);
-%[train_data, train_dg, test_data, test_dg]= Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
+[train_data, train_dg, test_data, test_dg]= Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
 meanTrain=mean(train_data,2);
@@ -36,7 +36,8 @@ for i  = 1: size( train_data,2)
     test_data(:,i) = test_data(:,i) - meanTest;
 end
 %% Reduce space of sensors using PCA to find the most relevant ones
-chosenColumns=chooseColumns(train_data);
+chosenColumns=1:1:size(train_data,2);
+%chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
@@ -90,8 +91,9 @@ end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 
 %save response
-sub1test_dg=eval_dg;
-save('subtest1_dg.mat','sub1test_dg');
+sub3test_dg=eval_dg;
+save('subtest3_dg.mat','sub3test_dg');
+disp(sprintf('Prediction Saved\n'));
 
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(test_dg,eval_dg);
@@ -130,6 +132,7 @@ while numRows<200000
     sub3test_dg=[sub3test_dg;sub3test_dg(end,:)];
     numRows=size(sub3test_dg);
 end
+size(sub3test_dg)
 %%
 subplot(2,1,1)
 plot(train_data(:,20));
