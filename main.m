@@ -26,15 +26,11 @@ disp(sprintf('... done loading data\n'));
 
 %% Creating the folding matrices 
 training_size = size(train_data,1);
-[train_data, train_dg, test_data, test_dg]= Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
+%[train_data, train_dg, test_data, test_dg]= Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
-meanTrain=mean(train_data,2);
-meanTest = mean(test_data,2);
-for i  = 1: size( train_data,2)
-    train_data(:,i) = train_data(:,i) - meanTrain;
-    test_data(:,i) = test_data(:,i) - meanTest;
-end
+train_data = calcCAR(train_data);
+test_data = calcCAR(test_data);
 %% Reduce space of sensors using PCA to find the most relevant ones
 chosenColumns=1:1:size(train_data,2);
 %chosenColumns=chooseColumns(train_data);
@@ -42,7 +38,7 @@ newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
 save('trainFeatures1.mat','Feature_array1');
-% load('Feature1_1.mat','Feature_array1');
+%load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 %% Find X
 lr=linearRegression;
@@ -56,6 +52,7 @@ prediction=lr.predictData(coeffs,X);
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+    eval_dg(:,i)=smoothData(eval_dg(:,i));
 %     eval_dg(:,i) = filter(Hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
@@ -68,13 +65,14 @@ display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
 
+BREAK_HERE
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTestData);
-save('testFeatures1.mat','Feature_array1');
-% load('testFeatures1.mat','Feature_array1');
+%Feature_array1=processWindows(newTestData);
+% save('testFeatures1.mat','Feature_array1');
+load('testFeatures1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 
 %% Predict test data
@@ -86,17 +84,20 @@ prediction=lr.predictData(coeffs,X);
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+    eval_dg(:,i)=smoothData(eval_dg(:,i));
 %     eval_dg(:,i) = filter(hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 
 %save response
-sub3test_dg=eval_dg;
-save('subtest3_dg.mat','sub3test_dg');
+sub1test_dg=eval_dg;
+save('subtest1_dg.mat','sub1test_dg');
 disp(sprintf('Prediction Saved\n'));
 
 %% Find correlation with test_dg
 [cf corrAvg]=findFingerCorrelation(test_dg,eval_dg);
+% y=downsampleGlove(test_dg,decimationFactor);
+% [cf corrAvg]=findFingerCorrelation(y,prediction);
 for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
@@ -118,8 +119,8 @@ Forced_End_Of_Program
 
 %%
 finger=1;
-time=10000;
-plot(train_dg(1:time,finger));
+time=100000;
+plot(test_dg(1:time,finger));
 title('Original');
 hold on;
 plot(eval_dg(1:time,finger),'r');

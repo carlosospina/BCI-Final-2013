@@ -15,6 +15,9 @@ xx = 0:(1/decimationFactor):numRows;
 %Remove the additional data point at the end
 xx = xx(1,1:end-1);
 
-interpolatedData = spline(x,data' ,xx);
+% fix start and end point for the data
+y=data';
+y=[y(1,1) y y(1,numRows)];
+interpolatedData = spline(x,y ,xx);
 interpolatedData=interpolatedData';
 end
