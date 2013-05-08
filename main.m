@@ -19,7 +19,7 @@ numFeatures=6;
 
 %% Load Data
 disp(sprintf('Loading data... \n'));
-fileName='be521_sub1_compData.mat'
+fileName='be521_sub2_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
@@ -31,7 +31,7 @@ training_size = size(train_data,1);
 %% Data centering CAR 
 train_data = calcCAR(train_data);
 test_data = calcCAR(test_data);
-%% Reduce space of sensors using PCA to find the most relevant ones
+%% Reduce space of sensors. find the most relevant ones
 chosenColumns=1:1:size(train_data,2);
 %chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
@@ -65,16 +65,15 @@ display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
 
-BREAK_HERE
+%BREAK_HERE
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
 %% Process the windows for all data samples
-%Feature_array1=processWindows(newTestData);
-% save('testFeatures1.mat','Feature_array1');
-load('testFeatures1.mat','Feature_array1');
+Feature_array1=processWindows(newTestData);
+save('testFeatures1.mat','Feature_array1');
+%load('testFeatures1.mat','Feature_array1');
 featureMatrix=Feature_array1;
-
 %% Predict test data
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
@@ -90,8 +89,8 @@ end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 
 %save response
-sub1test_dg=eval_dg;
-save('subtest1_dg.mat','sub1test_dg');
+sub2test_dg=eval_dg;
+save('subtest2_dg.mat','sub2test_dg');
 disp(sprintf('Prediction Saved\n'));
 
 %% Find correlation with test_dg
@@ -126,7 +125,8 @@ hold on;
 plot(eval_dg(1:time,finger),'r');
 hold off;
 
-
+%%
+plot(train_dg(1:time,finger),'r');
 %%
 numRows=size(sub3test_dg);
 while numRows<200000
