@@ -48,9 +48,9 @@ lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
 %% Find filter
 y=downsampleGlove(train_dg,decimationFactor);
-filter=lr.findFilter(X,y);
+coeffs=lr.findFilter(X,y);
 %% Predict
-prediction=lr.predictData(filter,X);
+prediction=lr.predictData(coeffs,X);
 % Upsample using splines
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
@@ -64,7 +64,7 @@ end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
-
+aaaaa
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
@@ -78,12 +78,14 @@ featureMatrix=Feature_array1;
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
 %% Predict
-prediction=lr.predictData(filter,X);
+prediction=lr.predictData(coeffs,X);
 % Upsample using splines
-eval_dg = zeros(size(prediction,1)*decimationFactor,size(shiftedY,2));
+eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+    eval_dg(:,i) = filter(hd,eval_dg(:,i) );% filter the data
 end
+eval_dg=eval_dg(1:) 
 %save response
 sub1test_dg=eval_dg;
 save('subtest_dg.mat','sub1test_dg');
@@ -111,12 +113,18 @@ Forced-End
 
 
 %%
-subplot(2,1,1);
-plot(train_dg(1:numInterpolatedRows,1));
+% subplot(2,1,1);
+plot(train_dg(1:end,1));
 title('Original');
-subplot(2,1,2);
-plot(eval_dg(1:numInterpolatedRows,1));
-title('Predicted');
+hold on;
+data=eval_dg(:,1)';
+b = filter(Hd,data');
+
+% subplot(2,1,2);
+% yy = smooth(eval_dg(1:50000,1),'loess');
+plot(b(200:end,1),'r');
+% title('Predicted');
+hold off;
 
 
 %%
@@ -161,6 +169,7 @@ size(y)
 
 
 %%
-data=prediction(:,1)'
-b = filter(Hd);
-plotResults(y,prediction);
+data=eval_dg(:,1)';
+b = filter(Hd,data');
+plot(b);
+% plotResults(y,prediction);

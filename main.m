@@ -25,7 +25,7 @@ disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size = 100000;
+training_size = 400000;
 [train_data, train_dg, test_data, test_dg] = Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
@@ -48,14 +48,16 @@ lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
 %% Find filter
 y=downsampleGlove(train_dg,decimationFactor);
-filter=lr.findFilter(X,y);
+coeffs=lr.findFilter(X,y);
 %% Predict
-prediction=lr.predictData(filter,X);
+prediction=lr.predictData(coeffs,X);
 % Upsample using splines
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+%     eval_dg(:,i) = filter(Hd,eval_dg(:,i) );% filter the data
 end
+eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 %% Find correlation with train_dg
 [cf corrAvg]=findFingerCorrelation(train_dg,eval_dg);
 for i=1:size(cf,2)
@@ -64,7 +66,7 @@ end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
-
+aaaaa
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
@@ -78,12 +80,15 @@ featureMatrix=Feature_array1;
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
 %% Predict
-prediction=lr.predictData(filter,X);
+prediction=lr.predictData(coeffs,X);
 % Upsample using splines
-eval_dg = zeros(size(prediction,1)*decimationFactor,size(shiftedY,2));
+eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
+%     eval_dg(:,i) = filter(hd,eval_dg(:,i) );% filter the data
 end
+eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
+
 %save response
 sub1test_dg=eval_dg;
 save('subtest_dg.mat','sub1test_dg');
@@ -111,12 +116,11 @@ Forced-End
 
 
 %%
-subplot(2,1,1);
-plot(train_dg(1:numInterpolatedRows,1));
+plot(train_dg(1:5000,1));
 title('Original');
-subplot(2,1,2);
-plot(eval_dg(1:numInterpolatedRows,1));
-title('Predicted');
+hold on;
+plot(eval_dg(1:5000,1),'r');
+hold off;
 
 
 %%
@@ -161,6 +165,7 @@ size(y)
 
 
 %%
-data=prediction(:,1)'
-b = filter(Hd,data);
-%plotResults(y,prediction);
+data=eval_dg(:,1)';
+b = filter(Hd,data');
+plot(b);
+% plotResults(y,prediction);
