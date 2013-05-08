@@ -1,5 +1,5 @@
 function plotResults(train_dg,eval_dg)
-    numRows=size(train_dg,1);
+    numRows=min(size(train_dg,1),size(eval_dg,1));
     figure;
     subplot(2,5,1);
     for i=1:5

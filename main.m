@@ -19,13 +19,13 @@ numFeatures=6;
 
 %% Load Data
 disp(sprintf('Loading data... \n'));
-fileName='be521_sub1_compData.mat'
+fileName='be521_sub2_compData.mat'
 load(fileName); % Load the data for the first patient
 disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size = 400000;
+training_size = 100000;%size(train_data,1);
 [train_data, train_dg, test_data, test_dg] = Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
@@ -40,7 +40,7 @@ chosenColumns=chooseColumns(train_data);
 newTrainData=train_data(:,chosenColumns);
 %% Process the windows for all data samples
 Feature_array1=processWindows(newTrainData);
-save('trainFeatures1.mat','Feature_array1');
+% save('trainFeatures1.mat','Feature_array1');
 % load('Feature1_1.mat','Feature_array1');
 featureMatrix=Feature_array1;
 %% Find X
@@ -66,7 +66,7 @@ end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
-aaaaa
+
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 newTestData=test_data(:,chosenColumns);
@@ -90,21 +90,20 @@ end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 
 %save response
-sub1test_dg=eval_dg;
-save('subtest_dg.mat','sub1test_dg');
-%% Process data from glove
-y=downsampleGlove(train_dg,decimationFactor);
+sub2test_dg=eval_dg;
+save('subtest2_dg.mat','sub2test_dg');
+
 %% Find correlation with test_dg
-[cf corrAvg]=findFingerCorrelation(eval_dg,y);
+[cf corrAvg]=findFingerCorrelation(test_dg,eval_dg);
 for i=1:size(cf,2)
     display(sprintf('Finger %d ==> correlation: %f \n',i,cf(1,i)));
 end
 display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 
 %% Plot Results
-plotResults(train_dg,eval_dg);
+plotResults(test_dg,eval_dg);
 
-Forced-End
+Forced_End_Of_Program
 
 % numInterpolatedRows=50%size(interpolatedVal,1);
 % subplot(2,1,1);
@@ -116,10 +115,10 @@ Forced-End
 
 
 %%
-plot(train_dg(1:5000,1));
+plot(train_dg(1:50000,1));
 title('Original');
 hold on;
-plot(eval_dg(1:5000,1),'r');
+plot(eval_dg(1:50000,1),'r');
 hold off;
 
 
