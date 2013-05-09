@@ -32,15 +32,48 @@ function [featureMatrix]=processWindows(train_data)
     numRows=numRows-1;
     featureMatrix = zeros(numRows,numColumns);
     windowDisplacement=overlap/samplePeriod;
+ 
+    % Get the frequency analysis for all data at once
+    mySCell=cell(1,electrodes);
+    for i=1:electrodes
+        disp(sprintf('\tExtracting frequency data for electrode %d...\n',i));
+        S= spectrogram(train_data(:,i),windowSize,windowSize/2,1000,fs);
+        mySCell{i}=S;
+        clear S;
+    end
+    % Process each row fo features
     for(i=1:numRows)
         if mod(i,100) == 0 
             disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
         end
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
-        windowData=train_data(rowWindowStart:rowWindowEnd,:);
-        featureMatrix(i,:)=calcFeatures(windowData,fs);
+        featureRow=zeros(1,numColumns);
+        for e = 1:electrodes
+            windowData=train_data(rowWindowStart:rowWindowEnd,:);
+            % get frequency data for the correct window and electrode
+            sFreqData= mySCell{e}(:,i);
+            baseColumn=(e-1)*numFeatures;
+            % Calculate mean
+            featureRow(baseColumn+1)=mean(windowData(:,e));
+            % Calculate frquency features
+            %6Hz to 15Hz
+            featureRow(baseColumn+2) = mean(abs(sFreqData(7:16,:)));   
+            %21Hz to 25Hz
+            featureRow(baseColumn+3) = mean(abs(sFreqData(22:26,:)));
+            %76Hz to 115Hz
+            featureRow(baseColumn+4) = mean(abs(sFreqData(77:116,:)));
+            %126Hz to 160Hz
+            featureRow(baseColumn+5) = mean(abs(sFreqData(127:161,:)));
+            %161Hz to 175Hz
+            featureRow(baseColumn+6) = mean(abs(sFreqData(162:176,:)));
+        end
+        featureMatrix(i,:)=featureRow;
+        clear featureRow;
+        clear sFreqData;
+        %featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
+    clear mySCell;
     disp(sprintf('... done processing windows\n'));
  end
 

@@ -9,7 +9,7 @@ function chosenColumns = chooseColumns(data)
     % Choose the number of principal components and number of columns in
     % the component to use
     %--> find principal components that explain 90% of data
-    threshold=0.95;
+    threshold=0.75;
     contrib=cumsum(latent)/sum(latent);
     topNPrincipalComp=find(contrib<=threshold,1,'last');
     topNColumns=floor(size(pc,1)*threshold);
