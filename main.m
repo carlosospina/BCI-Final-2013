@@ -31,15 +31,16 @@ training_size = size(train_data,1);
 %% Data centering CAR 
 train_data = calcCAR(train_data);
 test_data = calcCAR(test_data);
+
 %% Reduce space of sensors. find the most relevant ones
 chosenColumns=1:1:size(train_data,2);
 %chosenColumns=chooseColumns(train_data);
-newTrainData=train_data(:,chosenColumns);
+train_data=train_data(:,chosenColumns);
+
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTrainData);
-save('trainFeatures1.mat','Feature_array1');
-%load('Feature1_1.mat','Feature_array1');
-featureMatrix=Feature_array1;
+featureMatrix=processWindows(train_data);
+save('trainFeatures1.mat','featureMatrix');
+%load('Feature1_1.mat','featureMatrix');
 %% Find X
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
@@ -53,7 +54,7 @@ eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
     eval_dg(:,i)=smoothData(eval_dg(:,i));
-%     eval_dg(:,i) = filter(Hd,eval_dg(:,i) );% filter the data
+%    eval_dg(:,i) = filter(Hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
 %% Find correlation with train_dg
@@ -68,12 +69,11 @@ plotResults(train_dg,eval_dg);
 %BREAK_HERE
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
-newTestData=test_data(:,chosenColumns);
+test_data=test_data(:,chosenColumns);
 %% Process the windows for all data samples
-Feature_array1=processWindows(newTestData);
-save('testFeatures1.mat','Feature_array1');
-%load('testFeatures1.mat','Feature_array1');
-featureMatrix=Feature_array1;
+featureMatrix=processWindows(test_data);
+save('testFeatures1.mat','featureMatrix');
+%load('testFeatures1.mat','featureMatrix');
 %% Predict test data
 lr=linearRegression;
 X=lr.buildX(featureMatrix, numFeatures, numBins);
@@ -83,7 +83,7 @@ prediction=lr.predictData(coeffs,X);
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
-    eval_dg(:,i)=smoothData(eval_dg(:,i));
+     eval_dg(:,i)=smoothData(eval_dg(:,i));
 %     eval_dg(:,i) = filter(hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
