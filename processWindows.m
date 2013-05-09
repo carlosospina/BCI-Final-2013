@@ -35,22 +35,23 @@ function [featureMatrix]=processWindows(train_data)
  
     % Get the frequency analysis for all data at once
     mySCell=cell(1,electrodes);
+    disp(sprintf('\tExtracting frequency data for electrodes...\n'));
     for i=1:electrodes
-        disp(sprintf('\tExtracting frequency data for electrode %d...\n',i));
         S= spectrogram(train_data(:,i),windowSize,windowSize/2,1000,fs);
         mySCell{i}=S;
         clear S;
     end
+    disp(sprintf('\t...done\n'));
     % Process each row fo features
-    for(i=1:numRows)
+    for i=1:numRows
         if mod(i,100) == 0 
             disp(sprintf('\tProcessing window %d from %d...\n',i,numRows));
         end
         rowWindowStart=((i-1)*windowDisplacement)+startOffset+1;
         rowWindowEnd=rowWindowStart-1+windowSize;
+        windowData=train_data(rowWindowStart:rowWindowEnd,:);
         featureRow=zeros(1,numColumns);
         for e = 1:electrodes
-            windowData=train_data(rowWindowStart:rowWindowEnd,:);
             % get frequency data for the correct window and electrode
             sFreqData= mySCell{e}(:,i);
             baseColumn=(e-1)*numFeatures;
@@ -71,7 +72,7 @@ function [featureMatrix]=processWindows(train_data)
         featureMatrix(i,:)=featureRow;
         clear featureRow;
         clear sFreqData;
-        %featureMatrix(i,:)=calcFeatures(windowData,fs);
+%         featureMatrix(i,:)=calcFeatures(windowData,fs);
     end
     clear mySCell;
     disp(sprintf('... done processing windows\n'));

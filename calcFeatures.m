@@ -1,7 +1,7 @@
 
 %%
 % data - Windowed data 100 x 62 
-function Feature_array = calcFeatures( data, freqData )
+function Feature_array = calcFeatures( data, fs )
     windowSize=size(data,1);
     Electrodes=size(data,2);
     numFeatures=6;
