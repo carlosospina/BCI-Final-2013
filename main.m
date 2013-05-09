@@ -13,9 +13,7 @@
 clc
 clear 
 
-numBins=3;
 decimationFactor = 50;
-numFeatures=6;
 
 %% Load Data
 disp(sprintf('Loading data... \n'));
@@ -25,7 +23,7 @@ disp(sprintf('... done loading data\n'));
 
 
 %% Creating the folding matrices 
-training_size = size(train_data,1);
+training_size = 200000;%Xsize(train_data,1);
 [train_data, train_dg, test_data, test_dg]= Folding(train_data(1:training_size,:),train_dg(1:training_size,:));
 
 %% Data centering CAR 
@@ -42,8 +40,10 @@ featureMatrix=processWindows(train_data);
 save('trainFeatures1.mat','featureMatrix');
 %load('Feature1_1.mat','featureMatrix');
 %% Find X
+featureMatrix=normalizeByColumn(featureMatrix);
+featureMatrix=normalizeByRow(featureMatrix);
 lr=linearRegression;
-X=lr.buildX(featureMatrix, numFeatures, numBins);
+X=lr.buildX(featureMatrix);
 %% Find filter
 y=downsampleGlove(train_dg,decimationFactor);
 coeffs=lr.findFilter(X,y);
@@ -53,7 +53,7 @@ prediction=lr.predictData(coeffs,X);
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
-    eval_dg(:,i)=smoothData(eval_dg(:,i));
+%    eval_dg(:,i)=smoothData(eval_dg(:,i));
 %    eval_dg(:,i) = filter(Hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
@@ -66,7 +66,7 @@ display(sprintf('Average correlation (no finger4): %f \n',corrAvg));
 %% Plot Results
 plotResults(train_dg,eval_dg);
 
-%BREAK_HERE
+BREAK_HERE
 %% =============== TEST DATA =============
 %% Reduce space of sensors for test DATA
 test_data=test_data(:,chosenColumns);
@@ -74,16 +74,18 @@ test_data=test_data(:,chosenColumns);
 featureMatrix=processWindows(test_data);
 save('testFeatures1.mat','featureMatrix');
 %load('testFeatures1.mat','featureMatrix');
-%% Predict test data
+%% Find X for test data
+featureMatrix=normalizeByColumn(featureMatrix);
+featureMatrix=normalizeByRow(featureMatrix);
 lr=linearRegression;
-X=lr.buildX(featureMatrix, numFeatures, numBins);
+X=lr.buildX(featureMatrix);
 %% Predict
 prediction=lr.predictData(coeffs,X);
 % Upsample using splines
 eval_dg = zeros(size(prediction,1)*decimationFactor,size(prediction,2));
 for i=1:size(prediction,2)
     eval_dg(:,i)= calcSpline(decimationFactor,prediction(:,i));
-     eval_dg(:,i)=smoothData(eval_dg(:,i));
+%     eval_dg(:,i)=smoothData(eval_dg(:,i));
 %     eval_dg(:,i) = filter(hd,eval_dg(:,i) );% filter the data
 end
 eval_dg=[zeros(200,5);eval_dg(1:end-200,:)]; 
@@ -125,52 +127,3 @@ hold on;
 plot(eval_dg(1:time,finger),'r');
 hold off;
 
-%%
-plot(train_dg(1:time,finger),'r');
-%%
-numRows=size(sub3test_dg);
-while numRows<200000
-    sub3test_dg=[sub3test_dg;sub3test_dg(end,:)];
-    numRows=size(sub3test_dg);
-end
-size(sub3test_dg)
-%%
-subplot(2,1,1)
-plot(train_data(:,20));
-subplot(2,1,2)
-
-d = fdesign.bandpass('N,F3db1,F3dB2',6,1,10,1000);
-Hd = design(d,'butter');
-test_filter = filter(Hd, train_data(:,ch));
-plot(test_filter);
-
-%%
-ch=20;
-subplot(2,1,1)
-spectrogram(train_data(:,ch),100,50,1000,1000);
-subplot(2,1,2)
-Fs = 1000;  % Sampling Frequency
-N  = 6;    % Order
-Fc = 100;  % Cutoff Frequency
-% the BUTTER function.
-[z, p, k] = butter(N, Fc/(Fs/2));
-[sos_var,g] = zp2sos(z, p, k);
-Hd          = dfilt.df2sos(sos_var, g);
-
-test_filter = filter(Hd, test_data(:,ch));
-spectrogram(test_filter,100,50,1000,1000);
-
-%%
-for i=1:size(y,2)
-    smalValIndex=find(y(:,i)<1);
-    y(smalValIndex,i)=0;
-end
-size(y)
-
-
-
-%%
-data=eval_dg(:,1)';
-b = filter(Hd,data');
-plot(b);
-% plotResults(y,prediction);

@@ -7,6 +7,7 @@
 % lr.function1(x);
 function functions=linearRegression
     functions.buildX=@buildX;
+    functions.buildX2=@buildX2;
     functions.findFilter=@findFilter;
     functions.predictData=@predictData;
 end
@@ -24,7 +25,9 @@ end
 % data -> numBins represent how many time bins previous to the actual
 % (including actual) will be used to build the filter that will be used on
 % prediction.
-function X=buildX(featureMatrix, numFeatures, numBins)
+function X=buildX(featureMatrix)
+    numFeatures=2;
+    numBins=3;
     disp(sprintf('Building X... \n'));
     numChannels=size(featureMatrix,2)/numFeatures;
     numTotalTimeBins=size(featureMatrix,1);
@@ -32,8 +35,8 @@ function X=buildX(featureMatrix, numFeatures, numBins)
     numColumns=1+numBins*numFeatures*numChannels;
     numRows=numTotalTimeBins-numBins+1;
 
-    % Build the X matrix
-    % Iterate to fill the matrix, one row at the time
+   % Build the X matrix
+   % Iterate to fill the matrix, one row at the time
     X=zeros(numRows,numColumns);
     for r=1:numRows
         % Get the relevant data for the channel and bin, by creating a
@@ -66,8 +69,13 @@ function filter=findFilter(X, Y)
 %         smalValIndex=find(Y(:,i)<0.5);
 %         Y(smalValIndex,i)=0;
 %     end
+    %regularization matrix
+    numColumns=size(X,2);
+    lambda=0;
+    regMatrix=diag(ones(1,numColumns))*lambda;
+    regMatrix(1,1)=0;
     % Calculate the corresponding filters
-    filter=(X'*X)\(X'*Y(1:numRows,:));
+    filter=(X'*X-regMatrix )\(X'*Y(1:numRows,:));
     disp(sprintf('... Filter done. \n'));
 end
 
@@ -81,4 +89,18 @@ function predictedY=predictData(filter, X)
     prediction=[prediction;prediction(end,:)];
     prediction=[prediction;prediction(end,:)];
     predictedY=prediction;
+end
+
+
+function X=buildX2(featureMatrix)
+    disp(sprintf('Building X... \n'));
+    % Build the X matrix
+    numColumns=size(featureMatrix,2)+1;
+    numRows=size(featureMatrix,1);
+    X=[ones(numRows,1) featureMatrix];
+    % Adjust polynomial form, begining from second column
+    for i=1:(numColumns-1)
+        x=X(:,i+1);
+        X(:,i+1)=x.^i;
+    end
 end
